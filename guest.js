@@ -1,5 +1,6 @@
 /* RAY Lecture 2026 night: the guest page.
-   ?g=TOKEN  the guest's own A5 (type the name printed there once, then the coupon opens)
+   No token: register with your Thai nickname and the 5-digit code on your A5 (any A5; one code, one guest).
+   Registering is checking in. The page then keeps ?g=TOKEN (and this phone remembers it).
    ?c=TOKEN  a coupon a host sent online */
 (function () {
   "use strict";
@@ -33,34 +34,55 @@
       '<p class="en">Cost of Revolution</p>' + extra + "</section>";
   }
 
-  function showNoToken() {
-    app.innerHTML = hero('<p class="lead">สแกน QR บน A5 ของคุณ เพื่อเปิดคูปองเครื่องดื่ม</p>');
+  function forget() {
+    g = "";
+    try { localStorage.removeItem(STORE); } catch (e) { /* ignore */ }
+    if (location.search) history.replaceState(null, "", location.pathname);
   }
 
   function showBad() {
-    app.innerHTML = hero('<p class="lead">ลิงก์นี้ใช้ไม่ได้<br>ลองสแกน QR บน A5 อีกครั้ง หรือบอกทีมงาน</p>');
+    app.innerHTML = hero('<p class="lead">ลิงก์คูปองนี้ใช้ไม่ได้<br>บอกทีมงาน</p>');
   }
 
-  function showEnter() {
+  const ERR = {
+    name: "ไม่พบชื่อนี้ในรายชื่อ ลองพิมพ์ชื่อเล่นแบบอื่น หรือเรียกทีมงาน",
+    code: "รหัสไม่ถูก ดูตัวเลข 5 หลักในกรอบเส้นประบน A5 อีกครั้ง",
+    code_used: "รหัสนี้มีคนใช้ลงทะเบียนไปแล้ว เรียกทีมงาน",
+    name_taken: "ชื่อนี้ลงทะเบียนไปแล้วด้วยรหัสอื่น ถ้าไม่ใช่คุณ เรียกทีมงาน",
+    wait: "ลองผิดหลายครั้ง รอสักครู่แล้วลองใหม่ หรือเรียกทีมงาน"
+  };
+
+  function showEnter(msg) {
     app.innerHTML = hero(
       '<form class="code" autocomplete="off" novalidate>' +
-      '<label for="code">พิมพ์รหัสในกรอบเส้นประบน A5 ของคุณ</label>' +
-      '<input id="code" name="code" type="text" inputmode="text" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="รหัส">' +
-      '<button type="submit">เปิดคูปอง</button>' +
-      '<p class="err" role="alert"></p>' +
-      "</form>");
-    const form = app.querySelector("form"), input = form.querySelector("input"), err = form.querySelector(".err"),
-      btn = form.querySelector("button");
+      '<label for="gname">ชื่อเล่นของคุณ (ภาษาไทย)</label>' +
+      '<input id="gname" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="ชื่อเล่น">' +
+      '<label for="gcode">รหัส 5 หลักในกรอบเส้นประบน A5</label>' +
+      '<input id="gcode" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="7" enterkeyhint="go" placeholder="•••••">' +
+      '<button type="submit">ลงทะเบียน และเปิดคูปอง</button>' +
+      '<p class="err" role="alert">' + esc(msg || "") + "</p></form>");
+    const form = app.querySelector("form"), nameIn = form.querySelector("#gname"), codeIn = form.querySelector("#gcode"),
+      err = form.querySelector(".err"), btn = form.querySelector("button");
+    nameIn.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); codeIn.focus(); } });
     form.addEventListener("submit", async e => {
       e.preventDefault();
-      const name = input.value.trim();
-      if (!name) { err.textContent = "พิมพ์รหัสก่อน"; input.focus(); return; }
+      const name = nameIn.value.trim(), code = codeIn.value.replace(/\D/g, "");
+      if (!name) { err.textContent = "พิมพ์ชื่อเล่นก่อน"; nameIn.focus(); return; }
+      if (code.length !== 5) { err.textContent = "รหัสมี 5 หลัก"; codeIn.focus(); return; }
       btn.disabled = true; err.textContent = "";
       try {
-        const res = await rpc("night27_claim", { p_token: g, p_name: name });
-        if (res.ok) { input.blur(); showCoupons(res, true); }
-        else if (res.error === "name") { err.textContent = "รหัสไม่ตรงกับ A5 แผ่นนี้ ลองดูในกรอบเส้นประอีกครั้ง หรือเรียกทีมงาน"; input.select(); }
-        else showBad();
+        const res = await rpc("night27_register", { p_name: name, p_code: code });
+        if (res.ok) {
+          g = res.token;
+          try { localStorage.setItem(STORE, g); } catch (e2) { /* private mode */ }
+          history.replaceState(null, "", location.pathname + "?g=" + g);
+          codeIn.blur();
+          showCoupons(res, true);
+          startPoll();
+        } else {
+          err.textContent = ERR[res.error] || "ลงทะเบียนไม่สำเร็จ ลองอีกครั้ง หรือเรียกทีมงาน";
+          (res.error === "name" ? nameIn : codeIn).select();
+        }
       } catch (_) {
         err.textContent = "ต่อเน็ตไม่ได้ ลองอีกครั้ง";
       }
@@ -126,30 +148,38 @@
   }
 
   async function refresh() {
-    if (document.hidden) return;
+    if (document.hidden || (!g && !c)) return;
     try {
       const res = c ? await rpc("night27_coupon", { p_ctoken: c }) : await rpc("night27_state", { p_token: g });
       if (res.ok && (c || res.registered)) showCoupons(res, false);
+      else if (!c && app.querySelector(".wallet")) {   // a host undid this registration
+        forget();
+        showEnter("ทีมงานล้างการลงทะเบียนของคุณแล้ว ลงทะเบียนใหม่ได้");
+      }
     } catch (_) { /* try again next round */ }
   }
 
+  function startPoll() {
+    clearInterval(poll);
+    poll = setInterval(refresh, 8000);
+  }
+
   async function start() {
-    startClocks();
-    if (!g && !c) return showNoToken();
+    if (!g && !c) return showEnter("");
     try {
       const res = c ? await rpc("night27_coupon", { p_ctoken: c }) : await rpc("night27_state", { p_token: g });
-      if (!res.ok) return showBad();
-      if (!c && !res.registered) showEnter();
-      else showCoupons(res, false);
+      if (!res.ok && c) return showBad();
+      if (!res.ok || (!c && !res.registered)) { forget(); return showEnter(""); }
+      showCoupons(res, false);
     } catch (_) {
       app.innerHTML = hero('<p class="lead">ต่อเน็ตไม่ได้<br><button class="retry" type="button">ลองอีกครั้ง</button></p>');
       app.querySelector(".retry").addEventListener("click", start);
       return;
     }
-    clearInterval(poll);
-    poll = setInterval(refresh, 8000);
-    document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
+    startPoll();
   }
 
+  startClocks();
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
   start();
 })();

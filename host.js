@@ -76,13 +76,16 @@
     const q = filter.trim();
     const guests = data.guests.filter(g => !q || g.name.includes(q));
     const list =
-      '<section class="card"><h2>รายชื่อ <small>' + data.guests.filter(g => g.registered_at).length + "/" + data.guests.length + ' คนเปิดคูปองแล้ว</small></h2>' +
+      '<section class="card"><h2>รายชื่อ <small>ลงทะเบียนแล้ว ' + data.guests.filter(g => g.registered_at).length + "/" + data.guests.length + " คน<br>รหัสบน A5 ที่ยังไม่ใช้ " + data.codes_left + "</small></h2>" +
       '<input class="filter" type="search" placeholder="ค้นชื่อ" value="' + esc(filter) + '">' +
       guests.map(g =>
         '<div class="guest"><div class="g-head"><span class="g-name">' + esc(g.name) + "</span>" +
-        (g.registered_at ? '<span class="tag on">เปิดแล้ว</span>' : '<span class="tag">ยังไม่เปิด</span>') +
+        (g.registered_at ? '<span class="tag on">มาแล้ว ' + hhmm(g.registered_at) + (g.code ? " รหัส " + g.code : "") + "</span>" : '<span class="tag">ยังไม่ลงทะเบียน</span>') +
         (g.drink ? "" : '<span class="tag warn">ยังไม่ได้เลือก</span>') +
-        '<button class="mini" data-act="glink" data-token="' + g.token + '" data-who="' + esc(g.name) + '">ลิงก์ A5</button></div>' +
+        (g.registered_at
+          ? '<button class="mini" data-act="glink" data-token="' + g.token + '" data-who="' + esc(g.name) + '">ลิงก์คูปอง</button>' +
+            '<button class="mini danger" data-act="unreg" data-guest="' + g.id + '" data-who="' + esc(g.name) + '">ล้าง</button>'
+          : "") + "</div>" +
         (g.coupons.length ? g.coupons.map(c => couponRow(c, g.name)).join("") : '<div class="none">ยังไม่มีคูปอง</div>') +
         "</div>").join("") + "</section>";
 
@@ -159,7 +162,11 @@
     const a = b.dataset.act;
     if (a === "logout") { if (confirm("ออกจากหน้าทีมงานบนเครื่องนี้?")) logout(""); return; }
     if (a === "link") return share(SITE + "?c=" + b.dataset.token, "คูปองเครื่องดื่ม" + (b.dataset.who ? " ของ " + b.dataset.who : "") + " (ยื่นให้พนักงานฉีกที่บาร์)");
-    if (a === "glink") return share(SITE + "?g=" + b.dataset.token, "ลิงก์คูปองของ " + b.dataset.who + " (พิมพ์รหัส " + b.dataset.who + ")");
+    if (a === "glink") return share(SITE + "?g=" + b.dataset.token, "ลิงก์คูปองของ " + b.dataset.who + " (ยื่นให้พนักงานฉีกที่บาร์)");
+    if (a === "unreg") {
+      if (!confirm("ล้างการลงทะเบียนของ " + b.dataset.who + " ?\nใช้เมื่อมีคนลงทะเบียนผิดชื่อหรือผิดรหัส ชื่อและรหัสจะว่างให้ลงทะเบียนใหม่ คูปองยังอยู่")) return;
+      return act("night27_host_unregister", { p_guest: +b.dataset.guest }, "ล้างการลงทะเบียนของ " + b.dataset.who + " แล้ว");
+    }
     const serial = +b.dataset.serial;
     if (a === "tear" && confirm("ฉีกคูปอง No. " + pad2(serial) + " แทนแขก?")) return act("night27_host_act", { p_serial: serial, p_action: "tear" }, "ฉีก No. " + pad2(serial) + " แล้ว");
     if (a === "untear" && confirm("คืนคูปอง No. " + pad2(serial) + " ให้ใช้ได้อีกครั้ง?")) return act("night27_host_act", { p_serial: serial, p_action: "untear" }, "คืน No. " + pad2(serial) + " แล้ว");

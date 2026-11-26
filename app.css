@@ -39,6 +39,8 @@ button { font: inherit; }
 .enter .lead { margin-top: 40px; font-size: 18px; line-height: 1.6; color: var(--text); }
 .code { margin-top: 44px; }
 .code label { display: block; font-weight: 500; font-size: 16px; margin-bottom: 10px; }
+.code input + label { margin-top: 18px; }
+#gcode { letter-spacing: .3em; }
 .code input {
   width: 100%; height: 60px; padding: 0 18px; border-radius: 14px;
   border: 1.5px solid var(--line); background: var(--page-2); color: var(--text);
@@ -164,3 +166,19 @@ button { font: inherit; }
   .t-title .t2 { font-size: 22px; }
   .s-name { font-size: 27px; }
 }
+
+/* ---- the practice page for the bar staff ---- */
+.practice-head { padding-top: 2vh; margin-bottom: 26px; }
+.practice-head .t1 { font-size: 50px; }
+.how { margin: 22px 0 0; padding-left: 1.3em; display: grid; gap: 6px; font-size: 16px; line-height: 1.5; }
+.real { margin: 16px 0 0; font-size: 14px; line-height: 1.6; color: var(--muted); }
+.demo-slot { display: grid; gap: 12px; }
+.wm {
+  position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; z-index: 1;
+  font: 600 44px/1 "Prompt", sans-serif; letter-spacing: .08em; color: var(--ink); opacity: .16; transform: rotate(-14deg);
+}
+.again {
+  justify-self: center; height: 44px; padding: 0 20px; border-radius: 12px; border: 1.5px solid var(--line);
+  background: var(--page-2); color: var(--text); font: 500 15px/1 "Prompt", sans-serif; cursor: pointer;
+}
+.again.all { display: block; margin: 30px auto 0; }
