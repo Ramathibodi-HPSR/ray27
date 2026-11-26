@@ -119,8 +119,9 @@ button { font: inherit; }
   top: calc(var(--main-h, 330px) - 60px);
   touch-action: pan-y; cursor: grab;
 }
+/* the hint slides low on the stub, where the finger should go: on the perforation it taught people to trace that line */
 .hint {
-  position: absolute; top: 60px; left: -24px; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%;
+  position: absolute; bottom: 38px; left: -24px; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%;
   background: radial-gradient(circle, rgba(255, 255, 255, .95) 0 26%, rgba(255, 91, 58, .55) 30%, rgba(255, 91, 58, 0) 70%);
   animation: glide 2.6s cubic-bezier(.45, 0, .3, 1) infinite; pointer-events: none;
 }
