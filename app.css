@@ -61,11 +61,13 @@ button { font: inherit; }
 .guide b { font-weight: 600; }
 .guide.done { color: var(--ok); font-weight: 500; }
 .small { margin: 8px 0 0; text-align: center; font-size: 14px; color: var(--muted); }
+.waiting .enter { padding-top: 2vh; margin-bottom: 32px; }
 .note-card { background: var(--page-2); border: 1px solid var(--line); border-radius: 16px; padding: 22px; text-align: center; line-height: 1.65; }
 .note-card .hi { font-size: 22px; font-weight: 600; margin: 0 0 6px; }
 .note-card p { margin: 0; }
 
 /* ---- the ticket ---- */
+.ticket[data-drink="1"] { filter: drop-shadow(0 0 .75px rgba(255, 255, 255, .6)); }
 .ticket { position: relative; width: var(--w); color: var(--ink); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .t-main, .t-stub { position: relative; background: var(--bg); }
 .t-main { padding: 22px 24px 26px; overflow: hidden; }
@@ -111,17 +113,17 @@ button { font: inherit; }
 
 /* the strip a finger drags along: the perforation, with room above and below */
 .tear-zone {
-  position: absolute; left: 0; right: 0; height: 92px; z-index: 3;
+  position: absolute; left: 24px; right: 24px; height: 92px; z-index: 3;
   top: calc(var(--main-h, 330px) - 46px);
   touch-action: none; cursor: grab;
 }
 .hint {
-  position: absolute; top: 46px; left: 0; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%;
+  position: absolute; top: 46px; left: -24px; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%;
   background: radial-gradient(circle, rgba(255, 255, 255, .95) 0 26%, rgba(255, 91, 58, .55) 30%, rgba(255, 91, 58, 0) 70%);
   animation: glide 2.6s cubic-bezier(.45, 0, .3, 1) infinite; pointer-events: none;
 }
 @keyframes glide {
-  0% { transform: translateX(16px); opacity: 0; }
+  0% { transform: translateX(56px); opacity: 0; }
   12% { opacity: 1; }
   78% { opacity: 1; }
   100% { transform: translateX(calc(var(--w) - 16px)); opacity: 0; }
@@ -132,15 +134,17 @@ button { font: inherit; }
 
 /* torn: the stamp */
 .stamp {
-  position: absolute; right: 18px; bottom: 30px; z-index: 2; display: none;
-  padding: 6px 14px 8px; border: 3px solid var(--ink); border-radius: 10px; transform: rotate(-9deg);
-  text-align: center; line-height: 1.15;
+  position: absolute; right: 20px; bottom: 26px; z-index: 2; display: none; max-width: calc(100% - 40px);
+  padding: 6px 14px 8px; border: 3px solid var(--ink); border-radius: 10px; transform: rotate(-6deg);
+  text-align: center; line-height: 1.15; background: var(--bg);
 }
+.ticket.torn .t-main { padding-bottom: 124px; }
 .stamp b { display: block; font: 600 30px/1.15 "Prompt", sans-serif; letter-spacing: .02em; }
 .stamp small { display: block; font: 500 13px/1.3 "Prompt", sans-serif; }
+.stamp .st-drink { font: 400 17px/1.2 "DM Serif Display", serif; margin-top: 2px; }
 .ticket.torn .stamp { display: block; }
 .ticket.just .stamp { animation: thump .45s cubic-bezier(.2, 1.4, .4, 1) both; }
-@keyframes thump { from { opacity: 0; transform: rotate(-9deg) scale(1.9); } }
+@keyframes thump { from { opacity: 0; transform: rotate(-6deg) scale(1.9); } }
 .ticket.torn .t-main::after { animation-duration: 6s; }
 
 /* ---- toast ---- */

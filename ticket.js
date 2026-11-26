@@ -19,7 +19,7 @@
   // The bar's three drinks, coloured as on the paper coupons (Percy and the bar, 25 Nov 2026)
   const DRINKS = {
     1: { name: "Velvet Revolution", year: "1989", bg: "#000000", ink: "#ffffff", spark: "#ff5b3a",
-         holes: "rgba(255,255,255,.45)", fiber: "rgba(255,255,255,.6)", liquid: "#3d3d3d", ice: false },
+         holes: "rgba(255,255,255,.75)", fiber: "rgba(255,255,255,.6)", liquid: "#3d3d3d", ice: false },
     2: { name: "Common Sense", year: "1776", bg: "#93600a", ink: "#ffffff", spark: "#ffb39f",
          holes: "rgba(255,255,255,.45)", fiber: "rgba(255,240,215,.75)", liquid: "#dba23a", ice: true },
     3: { name: "There’s Always Spring", year: "1968", bg: "#ffa8c4", ink: "#000000", spark: "#c2361b",
@@ -83,20 +83,20 @@
       const cx = 3 + i * (94 / 39);
       dots.push(i + 1 === c.serial
         ? '<circle class="lit" cx="' + cx.toFixed(2) + '%" cy="7" r="3.2" fill="' + d.spark + '"/>'
-        : '<circle cx="' + cx.toFixed(2) + '%" cy="7" r="1.6" fill="' + d.holes + '"/>');
+        : '<circle cx="' + cx.toFixed(2) + '%" cy="7" r="2.2" fill="' + d.holes + '"/>');
     }
     const ownerLine = owner
       ? '<div class="t-owner"><span>คูปองของ</span> <b>' + esc(owner) + "</b></div>"
       : '<div class="t-owner"><span>คูปองจากทีมงาน</span></div>';
     return '' +
-      '<article class="ticket" data-token="' + esc(c.token) + '" data-serial="' + c.serial + '" ' +
+      '<article class="ticket" data-drink="' + c.drink + '" data-token="' + esc(c.token) + '" data-serial="' + c.serial + '" ' +
       'style="--bg:' + d.bg + ";--ink:" + d.ink + ";--spark:" + d.spark + '">' +
       ' <div class="t-main">' +
       '  <div class="t-top"><span class="kicker">RAY LECTURE 2026</span><span class="live"><i></i><time class="clock">--:--:--</time></span></div>' +
       '  <div class="t-title"><div class="t1">ต้นทุน</div><div class="t2">ของการเปลี่ยนแปลง</div><div class="en">Cost of Revolution</div></div>' +
       ownerLine +
       '  <div class="t-when"><div class="date">ศุกร์ 27 พฤศจิกายน 2569</div><div class="venue">#OBSESSION.BKK</div></div>' +
-      '  <div class="stamp" aria-live="polite"><b>ใช้แล้ว</b><small></small></div>' +
+      '  <div class="stamp" aria-live="polite"><b>ใช้แล้ว</b><small class="st-drink">#' + c.drink + " " + esc(d.name) + '</small><small class="st-time"></small></div>' +
       '  <svg class="fiber fiber-main" aria-hidden="true"><path fill="none" stroke="' + d.fiber + '" stroke-width="1.4"/></svg>' +
       " </div>" +
       ' <div class="t-stub">' +
@@ -182,7 +182,7 @@
 
     function setTorn(iso, animate) {
       el.classList.add("torn");
-      el.querySelector(".stamp small").textContent = "ฉีกเมื่อ " + hhmm(iso) + " น.";
+      el.querySelector(".stamp .st-time").textContent = "ฉีกเมื่อ " + hhmm(iso) + " น.";
       if (animate) el.classList.add("just");
       draw();
     }

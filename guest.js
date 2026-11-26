@@ -44,7 +44,7 @@
   function showEnter() {
     app.innerHTML = hero(
       '<form class="code" autocomplete="off" novalidate>' +
-      '<label for="code">พิมพ์รหัสในกรอบบน A5 ของคุณ</label>' +
+      '<label for="code">พิมพ์รหัสในกรอบเส้นประบน A5 ของคุณ</label>' +
       '<input id="code" name="code" type="text" inputmode="text" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="รหัส">' +
       '<button type="submit">เปิดคูปอง</button>' +
       '<p class="err" role="alert"></p>' +
@@ -59,7 +59,7 @@
       try {
         const res = await rpc("night27_claim", { p_token: g, p_name: name });
         if (res.ok) { input.blur(); showCoupons(res, true); }
-        else if (res.error === "name") { err.textContent = "รหัสไม่ตรงกับ A5 แผ่นนี้ ลองดูในกรอบอีกครั้ง"; input.select(); }
+        else if (res.error === "name") { err.textContent = "รหัสไม่ตรงกับ A5 แผ่นนี้ ลองดูในกรอบเส้นประอีกครั้ง หรือเรียกทีมงาน"; input.select(); }
         else showBad();
       } catch (_) {
         err.textContent = "ต่อเน็ตไม่ได้ ลองอีกครั้ง";
@@ -115,11 +115,12 @@
 
     const waiting = app.querySelector(".waiting");
     waiting.innerHTML = mounted.size ? "" :
+      hero("") +
       '<div class="note-card">' +
       (owner ? '<p class="hi">สวัสดี ' + esc(owner) + "</p>" : "") +
       (state.chose === false
-        ? "<p>คุณยังไม่ได้เลือกเครื่องดื่มไว้<br>บอกพีพี ภีม ปู๊น หรืออลีฟ แล้วคูปองจะขึ้นที่หน้านี้</p>"
-        : "<p>ตอนนี้ยังไม่มีคูปอง<br>ทีมงานกำลังออกให้ใหม่ หน้านี้จะขึ้นเองเมื่อพร้อม</p>") +
+        ? "<p>คุณยังไม่ได้เลือกเครื่องดื่มไว้<br>บอกพีพี ภีม ปู๊น หรืออลีฟ<br>แล้วคูปองจะขึ้นที่หน้านี้เอง</p>"
+        : "<p>ตอนนี้ยังไม่มีคูปอง<br>ทีมงานกำลังออกให้ใหม่<br>หน้านี้จะขึ้นเองเมื่อพร้อม</p>") +
       "</div>";
     renderGuide();
   }

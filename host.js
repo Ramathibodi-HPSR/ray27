@@ -44,9 +44,8 @@
     const all = [];
     data.guests.forEach(g => g.coupons.forEach(c => all.push(c)));
     data.free.forEach(c => all.push(c));
-    const used = new Set(all.map(c => c.serial));
     const issued = all.length, torn = all.filter(c => c.torn_at).length;
-    const left = no => { const d = data.drinks.find(x => x.no === no); let n = 0; for (let s = firstSerial(no); s < firstSerial(no) + d.cap; s++) if (!used.has(s)) n++; return n; };
+    const left = no => { const d = data.drinks.find(x => x.no === no); return Math.max(0, d.cap - d.issued); };
 
     const totals =
       '<div class="totals">' +
@@ -55,7 +54,8 @@
       '<div><b>' + (data.max - issued) + '</b><span>ยังออกได้</span></div></div>' +
       '<div class="drinks">' + data.drinks.map(d =>
         '<div class="drow">' + chip(d.no) + '<span class="dname">' + esc(DRINKS[d.no].name) + '</span>' +
-        '<span class="dnum">ใช้ <b>' + d.torn + '</b> · ออก ' + d.issued + "/" + d.cap + "</span></div>").join("") + "</div>";
+        '<span class="dnum">ใช้ <b>' + d.torn + '</b> · ออก ' + d.issued + "/" + d.cap +
+        (d.issued > d.cap ? ' <em class="over">เกิน ' + (d.issued - d.cap) + "</em>" : "") + "</span></div>").join("") + "</div>";
 
     const options = ['<option value="">ไม่ระบุชื่อ (ส่งลิงก์ให้เอง)</option>']
       .concat(data.guests.filter(g => !g.drink).map(g => '<option value="' + g.id + '">' + esc(g.name) + " · ยังไม่ได้เลือก</option>"))
@@ -100,7 +100,6 @@
     if (keepFocus) { f.focus(); f.setSelectionRange(f.value.length, f.value.length); }
   }
 
-  function firstSerial(no) { return { 1: 1, 2: 19, 3: 31 }[no]; }   // serial ranges as on the paper coupons
 
   async function load() {
     try {
