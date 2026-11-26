@@ -6,7 +6,12 @@
   const { rpc, DRINKS, esc, pad2, hhmm, hhmmss } = window.R27;
   const app = document.getElementById("app");
   const toastEl = document.getElementById("toast");
-  const key = new URLSearchParams(location.hash.slice(1)).get("k") || "";
+  // one link for all hosts: each types their own 6-digit code and gets a session key kept on this phone
+  // (an old personal link with #k=… still works)
+  const STORE = "ray27.hk";
+  let key = new URLSearchParams(location.hash.slice(1)).get("k") || "";
+  try { if (!key) key = localStorage.getItem(STORE) || ""; } catch (e) { /* private mode */ }
+  let timer = 0;
   const SITE = location.origin + location.pathname.replace(/host\.html$/, "");
   let data = null, pickGuest = "", busy = false, filter = "";
 
@@ -89,7 +94,7 @@
     const keepFocus = document.activeElement && document.activeElement.classList.contains("filter");
     app.innerHTML =
       '<header class="h-top"><div><div class="kicker">RAY LECTURE 2026 · ทีมงาน</div><h1>' + esc(data.host) + "</h1></div>" +
-      '<div class="upd">อัปเดต<br><time>' + hhmmss(new Date()) + "</time></div></header>" +
+      '<div class="upd">อัปเดต<br><time>' + hhmmss(new Date()) + '</time><br><button class="out" type="button" data-act="logout">ออก</button></div></header>' +
       totals + issue + list + free +
       '<p class="foot">ตัวเลขนี้ใช้ปิดยอดกับร้านได้: ร้านเสิร์ฟตามคูปองที่ฉีกแล้ว รวมไม่เกิน ' + data.max + " แก้ว</p>";
     const sel = app.querySelector("#who");
@@ -104,7 +109,7 @@
   async function load() {
     try {
       const res = await rpc("night27_host", { p_key: key });
-      if (!res.ok) { app.innerHTML = '<p class="lead">ลิงก์ทีมงานนี้ใช้ไม่ได้ ขอลิงก์ใหม่จากพีพี</p>'; return false; }
+      if (!res.ok) { logout("รหัสนี้หมดอายุหรือใช้ไม่ได้ ใส่รหัสอีกครั้ง"); return false; }
       data = res;
       if (!busy) render();
       return true;
@@ -152,6 +157,7 @@
       return;
     }
     const a = b.dataset.act;
+    if (a === "logout") { if (confirm("ออกจากหน้าทีมงานบนเครื่องนี้?")) logout(""); return; }
     if (a === "link") return share(SITE + "?c=" + b.dataset.token, "คูปองเครื่องดื่ม" + (b.dataset.who ? " ของ " + b.dataset.who : "") + " (ยื่นให้พนักงานฉีกที่บาร์)");
     if (a === "glink") return share(SITE + "?g=" + b.dataset.token, "ลิงก์คูปองของ " + b.dataset.who + " (พิมพ์รหัส " + b.dataset.who + ")");
     const serial = +b.dataset.serial;
@@ -160,8 +166,53 @@
     if (a === "void" && confirm("ยกเลิกคูปอง No. " + pad2(serial) + " ?\nใช้เมื่อออกผิด เลขนี้จะว่างให้ออกใหม่")) return act("night27_host_act", { p_serial: serial, p_action: "void" }, "ยกเลิก No. " + pad2(serial) + " แล้ว");
   });
 
-  if (!key) { app.innerHTML = '<p class="lead">เปิดจากลิงก์ทีมงานที่พีพีส่งให้</p>'; return; }
-  load();
-  setInterval(() => { if (!document.hidden && !busy && !(document.activeElement && document.activeElement.matches("select, input"))) load(); }, 8000);
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+  function logout(msg) {
+    key = ""; data = null;
+    try { localStorage.removeItem(STORE); } catch (e) { /* ignore */ }
+    if (location.hash) history.replaceState(null, "", location.pathname);
+    showLogin(msg);
+  }
+
+  function showLogin(msg) {
+    clearInterval(timer);
+    app.innerHTML =
+      '<section class="enter"><div class="kicker">RAY LECTURE 2026 · ทีมงาน</div>' +
+      '<h1><span class="t1">ทีมงาน</span><span class="t2">คูปองเครื่องดื่ม</span></h1>' +
+      '<form class="code" autocomplete="off" novalidate>' +
+      '<label for="hcode">รหัสทีมงานของคุณ (6 หลัก)</label>' +
+      '<input id="hcode" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" placeholder="••••••">' +
+      '<button type="submit">เข้าหน้าทีมงาน</button>' +
+      '<p class="err" role="alert">' + esc(msg || "") + "</p></form></section>";
+    const form = app.querySelector("form"), input = form.querySelector("input"), err = form.querySelector(".err"),
+      btn = form.querySelector("button");
+    input.focus();
+    form.addEventListener("submit", async e => {
+      e.preventDefault();
+      const code = input.value.replace(/\D/g, "");
+      if (code.length !== 6) { err.textContent = "รหัสมี 6 หลัก"; return; }
+      btn.disabled = true; err.textContent = "";
+      try {
+        const res = await rpc("night27_host_login", { p_code: code });
+        if (res.ok) {
+          key = res.key;
+          try { localStorage.setItem(STORE, key); } catch (e2) { /* the session lasts until the page closes */ }
+          start();
+        } else {
+          err.textContent = res.error === "wait" ? "ใส่รหัสผิดหลายครั้ง รอ 10 นาทีแล้วลองใหม่" : "รหัสไม่ถูก ลองอีกครั้ง";
+          input.select();
+        }
+      } catch (_) { err.textContent = "ต่อเน็ตไม่ได้ ลองอีกครั้ง"; }
+      btn.disabled = false;
+    });
+  }
+
+  async function start() {
+    if (!key) return showLogin("");
+    await load();          // a network hiccup here is retried by the timer; a bad key has already logged out
+    clearInterval(timer);
+    timer = setInterval(() => { if (key && !document.hidden && !busy && !(document.activeElement && document.activeElement.matches("select, input"))) load(); }, 8000);
+  }
+
+  document.addEventListener("visibilitychange", () => { if (key && !document.hidden) load(); });
+  start();
 })();
