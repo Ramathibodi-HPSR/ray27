@@ -113,14 +113,14 @@ button { font: inherit; }
 .fiber-main { bottom: 0; }
 .fiber-stub { top: 0; }
 
-/* the strip a finger drags along: the perforation, with room above and below */
+/* where a finger can tear: the whole stub and a strip above the perforation (pan-y keeps vertical scrolling) */
 .tear-zone {
-  position: absolute; left: 24px; right: 24px; height: 92px; z-index: 3;
-  top: calc(var(--main-h, 330px) - 46px);
-  touch-action: none; cursor: grab;
+  position: absolute; left: 24px; right: 24px; bottom: 0; z-index: 3;
+  top: calc(var(--main-h, 330px) - 60px);
+  touch-action: pan-y; cursor: grab;
 }
 .hint {
-  position: absolute; top: 46px; left: -24px; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%;
+  position: absolute; top: 60px; left: -24px; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%;
   background: radial-gradient(circle, rgba(255, 255, 255, .95) 0 26%, rgba(255, 91, 58, .55) 30%, rgba(255, 91, 58, 0) 70%);
   animation: glide 2.6s cubic-bezier(.45, 0, .3, 1) infinite; pointer-events: none;
 }

@@ -240,32 +240,34 @@
       }
     }
 
+    // The drag can start anywhere on the stub and go either way (Percy 27 Nov: the first touch was hard to place).
+    // A mostly vertical move is left to the page, so the stub can still scroll the page.
+    const SWIPE = 0.55;   // of the ticket's width: about 190 px on a phone
     zone.addEventListener("pointerdown", e => {
       if (el.classList.contains("torn") || el.classList.contains("busy")) return;
-      e.preventDefault();
-      try { zone.setPointerCapture(e.pointerId); } catch (_) { /* old browsers */ }
       cancelAnimationFrame(raf);
       const r = el.getBoundingClientRect(), x = e.clientX - r.left;
-      st = { id: e.pointerId, left: r.left, W: r.width, x0: x, dir: x < r.width * 0.35 ? 1 : x > r.width * 0.65 ? -1 : 0, lx: x, lt: performance.now() };
-      if (st.dir) dir = st.dir;
+      st = { id: e.pointerId, left: r.left, W: r.width, x0: x, y0: e.clientY, dir: 0, lx: x, lt: performance.now() };
       audio.unlock();
-      el.classList.add("tearing");
     });
     zone.addEventListener("pointermove", e => {
       if (!st || e.pointerId !== st.id) return;
       const x = e.clientX - st.left;
       if (!st.dir) {
-        if (Math.abs(x - st.x0) < 10) return;
-        st.dir = dir = x > st.x0 ? 1 : -1;
+        const dx = x - st.x0, dy = e.clientY - st.y0;
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        if (Math.abs(dy) > Math.abs(dx)) { st = null; return; }      // scrolling, not tearing
+        st.dir = dir = dx > 0 ? 1 : -1;
+        try { zone.setPointerCapture(e.pointerId); } catch (_) { /* old browsers */ }
+        el.classList.add("tearing");
       }
-      const span = st.dir === 1 ? st.W - st.x0 : st.x0;
-      const moved = st.dir === 1 ? x - st.x0 : st.x0 - x;
-      const np = Math.max(p, Math.min(1, moved / Math.max(span, st.W * 0.5)));
+      const moved = st.dir * (x - st.x0);
+      const np = Math.max(p, Math.min(1, moved / (st.W * SWIPE)));
       const now = performance.now(), speed = Math.abs(x - st.lx) / Math.max(8, now - st.lt);
       if (np > p + 0.004) audio.grain(Math.min(0.5, 0.12 + speed * 0.35), 28 + Math.random() * 20);
       st.lx = x; st.lt = now;
       p = np; draw();
-      if (p >= 0.9) complete();
+      if (p >= 0.88) complete();
     });
     const release = e => {
       if (!st || e.pointerId !== st.id) return;
