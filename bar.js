@@ -7,9 +7,11 @@
   const { rpc, DRINKS, esc, pad2, hhmm, hhmmss } = window.R27;
   const app = document.getElementById("app");
   const toastEl = document.getElementById("toast");
-  // the bar's own link, kept on this device; a host already signed in on this phone can open it too
+  // the bar's own link, kept on this device; a host already signed in on this phone can open it too.
+  // Short form for the bar (Percy, 27 Nov 17:58): bar#KEY, typed in any case
   const STORE = "ray27.bk";
-  let key = new URLSearchParams(location.hash.slice(1)).get("k") || "";
+  const hash = location.hash.slice(1);
+  let key = new URLSearchParams(hash).get("k") || (/^[A-Za-z0-9]{6,24}$/.test(hash) ? hash.toUpperCase() : "");
   try {
     if (key) localStorage.setItem(STORE, key);
     else key = localStorage.getItem(STORE) || localStorage.getItem("ray27.hk") || "";
