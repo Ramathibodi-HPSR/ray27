@@ -1,0 +1,39 @@
+/* The bar's page: read from a step away, in a dark bar, on a phone or tablet */
+body.bar #app { width: min(calc(100vw - 32px), 720px); }
+.b-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
+.b-tile { display: flex; flex-direction: column; background: var(--page-2); border: 1px solid var(--line); border-top: 6px solid var(--bg);
+          border-radius: 14px; padding: 12px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06); }
+.b-tile.on { background: var(--bg); color: var(--ink); border-color: rgba(255, 255, 255, .3); }
+.bt-name { font: 400 16px/1.15 "DM Serif Display", serif; min-height: 2.3em; }
+.bt-n { font: 400 54px/1 "DM Serif Display", serif; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.bt-l { font: 600 14px/1.3 "Prompt", sans-serif; }
+.bt-sub { margin-top: 8px; font: 400 12.5px/1.45 "Prompt", sans-serif; opacity: .78; }
+
+.b-order { display: flex; align-items: center; gap: 12px; padding: 14px 0 14px 12px; border-left: 6px solid var(--bg);
+           box-shadow: inset 0 -1px 0 var(--line); }
+.b-order.new { animation: b-new 2.4s ease-out 1; }
+@keyframes b-new { from { background: rgba(255, 91, 58, .35); } to { background: transparent; } }
+.bo-main { flex: 1; min-width: 0; }
+.bo-top { display: flex; align-items: center; gap: 8px; }
+.bo-drink { font: 400 18px/1.2 "DM Serif Display", serif; }
+.bo-who { margin-top: 4px; font: 600 26px/1.2 "Prompt", sans-serif; overflow-wrap: anywhere; }
+.bo-who .anon { font-weight: 500; font-size: 18px; color: var(--muted); }
+.bo-meta { margin-top: 2px; font: 400 14px/1.45 "Prompt", sans-serif; color: var(--muted); }
+.bo-done { flex: none; min-width: 112px; height: 64px; border: 0; border-radius: 14px; background: var(--ok); color: #0d1f13;
+           font: 600 18px/1 "Prompt", sans-serif; cursor: pointer; }
+.bo-done:disabled { opacity: .5; }
+
+.b-fold { width: 100%; height: 44px; border: 1.5px solid var(--line); border-radius: 12px; background: transparent; color: var(--text);
+          font: 500 15px/1 "Prompt", sans-serif; cursor: pointer; }
+.b-served { display: flex; align-items: center; gap: 10px; padding: 10px 0; box-shadow: inset 0 -1px 0 var(--line); }
+.bs-who { flex: 1; font: 500 16px/1.3 "Prompt", sans-serif; }
+.bs-who small { color: var(--muted); font-size: 13px; }
+
+@media (max-width: 420px) {
+  .b-tiles { gap: 8px; }
+  .b-tile { padding: 10px 8px; }
+  .bt-name { font-size: 14px; }
+  .bt-n { font-size: 44px; }
+  .bo-who { font-size: 22px; }
+  .bo-done { min-width: 92px; height: 58px; font-size: 16px; }
+}
